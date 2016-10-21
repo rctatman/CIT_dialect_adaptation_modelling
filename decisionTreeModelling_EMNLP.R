@@ -15,6 +15,7 @@ library(plyr)
 library(phonR)
 library(vowels)
 library(e1071)
+library(gplots)
 
 # load in data 
 data <- read.table(file= "formantValues.csv",
@@ -116,6 +117,10 @@ fakeUS <- data.frame(soundname, intervalname, F1, F2, F3, speaker)
 speaker <- sample(c('US','NZ'), 1000, replace= T)
 fake <- data.frame(soundname, intervalname, F1, F2, F3, speaker)
 
+# uncomment to use real data mislablled instead
+# fakeUS <- cbind(selectedData[,1:5], speaker = c(rep('US', dim(selectedData)[1]- 1), 'NZ'))
+# fakeNZ <- cbind(selectedData[,1:5], speaker = c(rep('NZ', dim(selectedData)[1]- 1), 'NZ'))
+
 # check to make sure the column calsses are teh same
 sapply(fakeNZ[1,], class)
 sapply(fakeUS[1,], class)
@@ -126,10 +131,16 @@ USpredictions <- predict(fit, fakeUS)
 NZpredictions <- predict(fit, fakeNZ)
 predictions <- predict(fit, fake)
 
-# confusion matrix for each data set
+# confusion matrix for each data set (use with mislabelled real data from line
+# 120)
+# confusionMatrixHeatmap(confusionMatrix(NZpredictions, droplevels(selectedData$intervalname)))
+# title(main = "All data labelled 'NZ'")
+# confusionMatrixHeatmap(confusionMatrix(USpredictions, droplevels(selectedData$intervalname)))
+# title(main = "All data labelled 'US'")
+
+# confusion matrix for real data
 confusionMatrix(NZpredictions, USpredictions)
-confusionMatrix(predictions, USpredictions)
-confusionMatrix(NZpredictions, predictions)
+confusionMatrix(USpredictions, USpredictions)
 
 # plot of all our predictions
 plot(F1, F2, col = NZpredictions)
@@ -152,7 +163,7 @@ title("NZ Data")
 plotVowels(F1, F2, predictions, group = speaker, 
            pch.tokens = predictions, 
            alpha.tokens = 0.3, pch.means = predictions, cex.means = 2, plot.means = T,
-           plot.tokens = T, var.col.by = speaker, pretty = TRUE, 
+           plot.tokens = F, var.col.by = speaker, pretty = TRUE, 
            legend.kwd = "bottomright",
            xlim = c(3000,1600))
 title("Classification \n")
@@ -162,7 +173,7 @@ plotVowels(selectedData$F1, selectedData$F2, selectedData$intervalname,
            pch.tokens = selectedData$intervalname, 
            alpha.tokens = 0.3, pch.means = selectedData$intervalname,
            cex.means = 2, plot.means = T,
-           plot.tokens = T, var.col.by = selectedData$speaker, pretty = TRUE, 
+           plot.tokens = F, var.col.by = selectedData$speaker, pretty = TRUE, 
            legend.kwd = "bottomright",
            xlim = c(3000,1600))
 title("Training Tokens \n")
@@ -172,4 +183,17 @@ title("Training Tokens \n")
 # so this classifier is correctly tracking human participant behaviour--in
 # particular classifyingg NZ "head" tokens as US "hid" tokens
 
-#### Reaction Time Data ####
+#### ConfusionMatrixHeatmap this function takes the output of the
+#confusionMatrix function from the caret package and plots the table portion in
+#the plot object with a heatmap. Default colors are red for high densitity and
+#blue for low density.
+confusionMatrixHeatmap <- function(matrix, startColor = "lightblue", endColor = "red3"){ 
+  my.colors<-colorRampPalette(c(startColor, endColor))   
+  color.df<-data.frame(COLOR_VALUE=seq(min(matrix$table),max(matrix$table),1),                	color.name=my.colors(max(matrix$table)+1))
+  a <- matrix$table + 1 #allows plotting when the matrix contains a 0  
+  heatColors <- matrix(color.df[a[],2], nrow = dim(matrix$table)[1], ncol = dim(matrix$table)[2])  
+  textplot(matrix$table, col.data = heatColors)
+} 
+
+
+                
