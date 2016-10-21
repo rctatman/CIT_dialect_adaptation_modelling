@@ -183,13 +183,14 @@ title("Training Tokens \n")
 # so this classifier is correctly tracking human participant behaviour--in
 # particular classifyingg NZ "head" tokens as US "hid" tokens
 
-#### ConfusionMatrixHeatmap this function takes the output of the
-#confusionMatrix function from the caret package and plots the table portion in
-#the plot object with a heatmap. Default colors are red for high densitity and
-#blue for low density.
+#### ConfusionMatrixHeatmap ####
+# this function takes the output of the confusionMatrix function from the caret
+# package and plots the table portion in the plot object with a heatmap. Default
+# colors are red for high densitity and blue for low density.
 confusionMatrixHeatmap <- function(matrix, startColor = "lightblue", endColor = "red3"){ 
   my.colors<-colorRampPalette(c(startColor, endColor))   
-  color.df<-data.frame(COLOR_VALUE=seq(min(matrix$table),max(matrix$table),1),                	color.name=my.colors(max(matrix$table)+1))
+  color.df<-data.frame(COLOR_VALUE=seq(min(matrix$table),max(matrix$table),1),
+                       color.name=my.colors(max(matrix$table)+1))
   a <- matrix$table + 1 #allows plotting when the matrix contains a 0  
   heatColors <- matrix(color.df[a[],2], nrow = dim(matrix$table)[1], ncol = dim(matrix$table)[2])  
   textplot(matrix$table, col.data = heatColors)
